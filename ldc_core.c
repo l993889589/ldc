@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdio.h>
 
+
+//hello
 static uint32_t ldc_enter(ldc_t *ldc)
 {
     if(ldc->lock && ldc->unlock)
