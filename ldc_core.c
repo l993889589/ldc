@@ -27,6 +27,21 @@ static uint32_t ldc_enter(ldc_t *ldc)
     return 0U;
 }
 
+static const char *ldc_u64_to_decimal(uint64_t value, char buffer[21])
+{
+    char *cursor = &buffer[20];
+
+    *cursor = '\0';
+    do
+    {
+        cursor--;
+        *cursor = (char)('0' + (value % 10U));
+        value /= 10U;
+    } while(value != 0U);
+
+    return cursor;
+}
+
 static void ldc_leave(ldc_t *ldc, uint32_t state)
 {
     if(ldc->lock && ldc->unlock)
@@ -570,19 +585,26 @@ void ldc_dump_stats(ldc_t *ldc)
 {
     ldc_stats_t stats;
     const ldc_stats_t *s = &stats;
+    char number[21];
 
     if(!ldc_get_stats(ldc, &stats))
         return;
 
     printf("\r\n===== LDC Stats =====\r\n");
-    printf("RX Bytes      : %llu\r\n", s->rx_bytes);
-    printf("Packets       : %llu\r\n", s->packets);
-    printf("Overflow      : %llu\r\n", s->overflow);
-    printf("Drop          : %llu\r\n", s->drop);
-    printf("Overwrite     : %llu\r\n", s->overwrite_count);
-    printf("Ring Used     : %llu/%lu\r\n", s->cur_used, (unsigned long)ldc->ring.size);
-    printf("Ring Peak     : %llu/%lu\r\n", s->max_used, (unsigned long)ldc->ring.size);
-    printf("Packet Used   : %llu/%u\r\n", s->packet_used, ldc->packet.capacity);
-    printf("Packet Peak   : %llu/%u\r\n", s->packet_peak, ldc->packet.capacity);
+    printf("RX Bytes      : %s\r\n", ldc_u64_to_decimal(s->rx_bytes, number));
+    printf("Packets       : %s\r\n", ldc_u64_to_decimal(s->packets, number));
+    printf("Overflow      : %s\r\n", ldc_u64_to_decimal(s->overflow, number));
+    printf("Drop          : %s\r\n", ldc_u64_to_decimal(s->drop, number));
+    printf("Overwrite     : %s\r\n", ldc_u64_to_decimal(s->overwrite_count, number));
+    printf("Ring Used     : %s/%lu\r\n",
+           ldc_u64_to_decimal(s->cur_used, number), (unsigned long)ldc->ring.size);
+    printf("Ring Peak     : %s/%lu\r\n",
+           ldc_u64_to_decimal(s->max_used, number), (unsigned long)ldc->ring.size);
+    printf("Packet Used   : %s/%u\r\n",
+           ldc_u64_to_decimal(s->packet_used, number),
+           (unsigned int)ldc->packet.capacity);
+    printf("Packet Peak   : %s/%u\r\n",
+           ldc_u64_to_decimal(s->packet_peak, number),
+           (unsigned int)ldc->packet.capacity);
     printf("=====================\r\n");
 }
